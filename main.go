@@ -42,8 +42,10 @@ func handlePost(w http.ResponseWriter) {
 
 func handleNotFound(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
+	status := http.StatusNotFound
+	w.WriteHeader(status)
 	response := Response{
-		Status:  http.StatusNotFound,
+		Status:  status,
 		Message: "not Found",
 	}
 	json.NewEncoder(w).Encode(response)
