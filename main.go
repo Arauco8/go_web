@@ -14,6 +14,7 @@ type User struct {
 }
 
 var users []User
+var maxID uint64
 
 func init() {
 	users = []User{{
@@ -34,6 +35,10 @@ func init() {
 			LastName:  "Johnson",
 			Email:     "alice_johnson",
 		}}
+	maxID = 3
+	// Initialize the users slice with some sample data
+	// You can add more users here if needed
+	// For example:
 }
 
 type Response struct {
@@ -47,7 +52,7 @@ func UserServer(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		GetAllUsers(w)
 	case http.MethodPost:
-		handlePost(w)
+		handlePost(w, r)
 	default:
 		handleNotFound(w)
 	}
@@ -89,12 +94,21 @@ func DataResponse(w http.ResponseWriter, status int, users interface{}) {
 	*/
 }
 
-func handlePost(w http.ResponseWriter) {
+func handlePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	response := Response{
-		Status:  http.StatusOK,
-		Message: "success in POST",
+	decode := json.NewDecoder(r.Body)
+	var user User
+	if err := decode.Decode(&user); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 	}
+	response := Response{
+		Status:  http.StatusCreated,
+		Message: "success in POST",
+		Data:    []User{user},
+	}
+	maxID++
+	user.ID = maxID + 1
+	users = append(users, user)
 	json.NewEncoder(w).Encode(response)
 }
 
