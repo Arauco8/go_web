@@ -98,6 +98,17 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	decode := json.NewDecoder(r.Body)
 	var user User
+	if user.FirstName == "" || user.LastName == "" || user.Email == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		response := Response{
+			Status:  http.StatusBadRequest,
+			Message: "missing field",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+
+	}
+
 	if err := decode.Decode(&user); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -107,7 +118,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 		Data:    []User{user},
 	}
 	maxID++
-	user.ID = maxID + 1
+	user.ID = maxID // Assign a new ID to the user
 	users = append(users, user)
 	json.NewEncoder(w).Encode(response)
 }
