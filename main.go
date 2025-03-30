@@ -80,7 +80,13 @@ func DataResponse(w http.ResponseWriter, status int, users interface{}) {
 		Message: "success",
 		Data:    userData,
 	}
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(response) // Encode the response
+
+	/*Usa json.Marshal cuando necesites la representación JSON como un valor en tu código.
+	     Usa json.NewEncoder(w).Encode cuando necesites enviar la respuesta JSON directamente
+		 a un flujo de salida, como una respuesta HTTP o un archivo, especialmente si la estructura
+		 de datos puede ser grande o si necesitas un flujo de escritura continuo.
+	*/
 }
 
 func handlePost(w http.ResponseWriter) {
