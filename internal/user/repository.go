@@ -15,7 +15,7 @@ type DB struct {
 //Generamos Interfaz
 
 type (
-	Repository interface {
+	Repository interface { // Interfaz que define los métodos para interactuar con la base de datos
 		// CreateUser crea un nuevo usuario en la base de datos
 		Create(ctx context.Context, user *domain.User) error
 		// GetUserByID obtiene un usuario por su ID
@@ -36,7 +36,8 @@ type (
 	}
 )
 
-func NewRepository(db DB, logger *log.Logger) Repository {
+func NewRepository(db DB, logger *log.Logger) Repository { // Función que crea una nueva instancia de repo
+	// y la inicializa con la base de datos y el logger proporcionados
 	return &repo{
 		db:  db,
 		log: logger,
