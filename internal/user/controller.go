@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"proyectos/GO_Web/internal/domain"
+
+	"github.com/Arauco8/go_web/internal/domain"
 )
 
 // Este archivo contiene la definición de los controladores y las funciones relacionadas con el manejo de solicitudes HTTP para la entidad "Usuario".
@@ -29,7 +30,7 @@ type (
 	}
 )
 
-func MakeEndpoints(ctx context.Context, s *service) Controller {
+func MakeEndpoints(ctx context.Context, s Service) Controller {
 	// Crea una nueva instancia de Endpoints y asigna los controladores a las funciones correspondientes
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {

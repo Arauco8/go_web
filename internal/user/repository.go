@@ -3,7 +3,8 @@ package user
 import (
 	"context"
 	"log"
-	"proyectos/GO_Web/internal/domain"
+
+	"github.com/Arauco8/go_web/internal/domain"
 )
 
 // Esquema de Base de datos
