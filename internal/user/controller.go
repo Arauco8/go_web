@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-
-	"github.com/Arauco8/go_web/internal/domain"
+	"strings"
 )
 
 // Este archivo contiene la definición de los controladores y las funciones relacionadas con el manejo de solicitudes HTTP para la entidad "Usuario".
@@ -31,24 +30,41 @@ type (
 )
 
 func MakeEndpoints(ctx context.Context, s Service) Controller {
-	// Crea una nueva instancia de Endpoints y asigna los controladores a las funciones correspondientes
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		path := r.URL.Path
+
 		switch r.Method {
 		case http.MethodGet:
-			GetAllUsers(ctx, s, w)
-		case http.MethodPost:
-			decode := json.NewDecoder(r.Body)
-			var user domain.User
-			if err := decode.Decode(&user); err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				response := Response{
-					Status:  http.StatusBadRequest,
-					Message: err.Error(),
-				}
-				json.NewEncoder(w).Encode(response)
+			if path == "/users" {
+				GetAllUsers(ctx, s, w)
 				return
 			}
-			handlePost(ctx, s, w, user)
+			if strings.HasPrefix(path, "/users/") {
+				idStr := strings.TrimPrefix(path, "/users/")
+				GetUserByID(ctx, s, w, idStr)
+				return
+			}
+			handleNotFound(w)
+
+		case http.MethodPost:
+			if path == "/users" {
+				var req Createrequest
+				decode := json.NewDecoder(r.Body)
+				if err := decode.Decode(&req); err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					response := Response{
+						Status:  http.StatusBadRequest,
+						Message: err.Error(),
+					}
+					json.NewEncoder(w).Encode(response)
+					return
+				}
+				handlePost(ctx, s, w, req)
+				return
+			}
+			handleNotFound(w)
+
 		default:
 			handleNotFound(w)
 		}
@@ -56,61 +72,43 @@ func MakeEndpoints(ctx context.Context, s Service) Controller {
 }
 
 type Response struct {
-	Status  int           `json:"status"`
-	Message string        `json:"message"`
-	Data    []domain.User `json:"data,omitempty"`
-}
-
-func handleGet(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
-	response := Response{
-		Status:  http.StatusOK,
-		Message: "success in GET",
-	}
-	json.NewEncoder(w).Encode(response)
+	Status  int         `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"` // Usamos interface{} para Data
 }
 
 func GetAllUsers(ctx context.Context, s Service, w http.ResponseWriter) {
-	users, error := s.GetAllUsers(ctx)
-	if error != nil {
+	users, err := s.GetAllUsers(ctx)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := Response{
 			Status:  http.StatusInternalServerError,
-			Message: error.Error(),
+			Message: err.Error(),
 		}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
 	DataResponse(w, http.StatusOK, users)
 }
 
-func DataResponse(w http.ResponseWriter, status int, users interface{}) {
-	w.Header().Set("Content-Type", "application/json")
+func GetUserByID(ctx context.Context, s Service, w http.ResponseWriter, idStr string) {
+	// TODO: Implementar la lógica para convertir idStr a un tipo adecuado (int?)
+	// y llamar al servicio para obtener el usuario por ID.
+	// Por ahora, solo devolvemos un 404 simulado.
+	handleNotFound(w)
+}
+
+func DataResponse(w http.ResponseWriter, status int, data interface{}) {
 	w.WriteHeader(status)
-
-	var userData []domain.User
-	if u, ok := users.([]domain.User); ok {
-		userData = u
-	}
-
 	response := Response{
 		Status:  status,
 		Message: "success",
-		Data:    userData,
+		Data:    data,
 	}
-	json.NewEncoder(w).Encode(response) // Encode the response
-
-	/*Usa json.Marshal cuando necesites la representación JSON como un valor en tu código.
-	     Usa json.NewEncoder(w).Encode cuando necesites enviar la respuesta JSON directamente
-		 a un flujo de salida, como una respuesta HTTP o un archivo, especialmente si la estructura
-		 de datos puede ser grande o si necesitas un flujo de escritura continuo.
-	*/
+	json.NewEncoder(w).Encode(response)
 }
 
-func handlePost(context context.Context, s Service, w http.ResponseWriter, data interface{}) {
-	req := data.(Createrequest) // Convierte el dato a tipo domain.User
-
+func handlePost(ctx context.Context, s Service, w http.ResponseWriter, req Createrequest) {
 	if req.FirstName == "" || req.LastName == "" || req.Email == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		response := Response{
@@ -121,23 +119,21 @@ func handlePost(context context.Context, s Service, w http.ResponseWriter, data 
 		return
 	}
 
-	user, error := s.CreateUser(context, req.FirstName, req.LastName, req.Email) // Llama al método CreateUser del servicio
-	if error != nil {
+	user, err := s.CreateUser(ctx, req.FirstName, req.LastName, req.Email) // Llama al método CreateUser del servicio
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := Response{
 			Status:  http.StatusInternalServerError,
-			Message: error.Error(),
+			Message: err.Error(),
 		}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	DataResponse(w, http.StatusCreated, user) // Llama a la función DataResponse para enviar la respuesta
-	// Llama a la función DataResponse para enviar la respuesta
 }
 
 func handleNotFound(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
 	status := http.StatusNotFound
 	w.WriteHeader(status)
 	response := Response{

@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-
 	server := http.NewServeMux() // Create a new ServeMux
 	db := user.DB{
 		Users: []domain.User{{
@@ -78,8 +77,9 @@ func main() {
 
 	server.HandleFunc("/users", user.MakeEndpoints(ctx, service)) // Handle requests to /users
 
+	port := ":8080"
 	fmt.Println("Server listening on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(port, server); err != nil { // Pasa 'server' aquí
 		fmt.Println("Error starting server:", err)
 	}
 }
