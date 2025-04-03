@@ -37,7 +37,6 @@ func MakeEndpoints(ctx context.Context, s Service) Controller {
 		case http.MethodGet:
 			GetAllUsers(ctx, s, w)
 		case http.MethodPost:
-			w.Header().Set("Content-Type", "application/json")
 			decode := json.NewDecoder(r.Body)
 			var user domain.User
 			if err := decode.Decode(&user); err != nil {
