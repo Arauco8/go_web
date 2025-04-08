@@ -36,13 +36,13 @@ func (t *transport) Server(
 	encode func(ctx context.Context, w http.ResponseWriter, response interface{}) error,
 	encodeError func(ctx context.Context, w http.ResponseWriter, err error) error,
 ) {
-	request, err := decode(t.ctx, t.r)
+	data, err := decode(t.ctx, t.r)
 	if err != nil {
 		encodeError(t.ctx, t.w, err)
 		return
 	}
 
-	response, err := enpoint(t.ctx, request)
+	response, err := enpoint(t.ctx, data)
 	if err != nil {
 		encodeError(t.ctx, t.w, err)
 		return
