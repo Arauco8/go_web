@@ -30,7 +30,7 @@ func NewTransport(w http.ResponseWriter, r *http.Request, ctx context.Context) T
 	}
 }
 
-func (t *transport) Server(
+func (t *transport) Server( //middleware function that handles the request and response
 	enpoint Endpoint,
 	decode func(ctx context.Context, r *http.Request) (interface{}, error),
 	encode func(ctx context.Context, w http.ResponseWriter, response interface{}) error,
